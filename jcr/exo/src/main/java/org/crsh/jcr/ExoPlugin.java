@@ -50,6 +50,8 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
 
   @Override
   public Repository getRepository(Map<String, String> properties) throws Exception {
+    try {
+
     ClassLoader cl = Thread.currentThread().getContextClassLoader();
 
     // Get top container
@@ -62,18 +64,21 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
 			String containerName = null;
 			String repositoryName = null;
 			if(properties == null) {
-				java.util.Properties props = System.getProperties()
-				containerName = props.get("container");
-				repositoryName = props.get("repository");
+				java.util.Properties props = System.getProperties();
+				containerName = (String)props.get("container");
+				repositoryName = (String)props.get("repository");
 			} else {
 				containerName = properties.get("container");
 				repositoryName = properties.get("repository");
 			}
-       
       Object container;
       if (containerName != null) {
-        Method getPortalContainerMethod = topContainer.getClass().getMethod("getPortalContainer", String.class);
-        container = getPortalContainerMethod.invoke(topContainer, containerName);
+        Method method = eXoContainerContextClass.getMethod("getContainerByName", String.class);
+        container = method.invoke(eXoContainerContextClass, containerName);
+        if(container == null) {
+          Method method2 = eXoContainerContextClass.getMethod("getCurrentContainer");
+          container = method2.invoke(eXoContainerContextClass);
+        }
       } else {
         container = topContainer;
       }
@@ -92,10 +97,10 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
           Repository repository = null;
           if (repositoryName != null) {
             try {
-              Method getRepositoryMethod = repositoryService.getClass().getMethod("getRepository");
+              Method getRepositoryMethod = repositoryService.getClass().getMethod("getRepository", String.class);
               repository = (Repository) getRepositoryMethod.invoke(repositoryService, repositoryName);
             } catch (Exception e) {
-              System.out.println("\n Can not get repository by name: " + repositoryName + "\n" + e.getMessage());
+              System.out.println("Can not get repository by name: " + repositoryName);
             }
           }
           if (repository == null) {
@@ -106,7 +111,10 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
         }
       }
     }
-
+    
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
     //
     return null;
   }

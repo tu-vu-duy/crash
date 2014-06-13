@@ -12,7 +12,15 @@
 
   <name>CRaSH CLI</name>
   <description>The CRaSH command line interface module</description>
+  <dependencies>
 
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.4</version>
+    </dependency>
+    
+  </dependencies>
   <build>
     <plugins>
       <plugin>

@@ -169,7 +169,7 @@ select is a <Void,Node> command producing all the matched nodes.""")
         formatNode(builder, n, 0, 1);
 
         //
-        context.produce(n);
+        context.provide(n);
 
         //
         index++;

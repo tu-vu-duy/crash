@@ -26,9 +26,6 @@ import org.crsh.cli.Usage
 import org.crsh.text.ui.UIBuilder
 import org.crsh.jcr.JCRPlugin
 
-import org.exoplatform.container.ExoContainerContext;
-import org.exoplatform.services.jcr.RepositoryService;
-
 @Usage("repository interaction commands")
 @Man("""\
 The repo commands allow to select a repository to use, it is the main entry point for using JCR commands.
@@ -97,8 +94,10 @@ The parameters is specific to JCR plugin implementations, more details can be fo
       repository = JCRPlugin.findRepository(props);
     } catch (Exception e) {}
     if(repository == null) {
-      def repoSevice = ExoContainerContext.getContainerByName(ctn).getComponentInstanceOfType(RepositoryService.class);
-      repository = repoSevice.getRepository(repositoryName);
+			try {
+				def repoSevice = org.exoplatform.container.ExoContainerContext.getContainerByName(ctn).getComponentInstanceOfType(org.exoplatform.services.jcr.RepositoryService.class);
+				repository = repoSevice.getRepository(repositoryName);
+			} catch (Exception e) {}
     }
     return info();
   }

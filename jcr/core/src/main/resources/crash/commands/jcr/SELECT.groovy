@@ -12,7 +12,7 @@ import org.crsh.cli.Usage
 import org.crsh.cli.Argument
 import org.crsh.cli.Option;
 
-public class select {
+public class SELECT {
 
   @Usage("execute a JCR sql query")
   @Command
@@ -169,7 +169,7 @@ select is a <Void,Node> command producing all the matched nodes.""")
         formatNode(builder, n, 0, 1);
 
         //
-        context.produce(n);
+        context.provide(n);
 
         //
         index++;
