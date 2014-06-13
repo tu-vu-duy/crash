@@ -27,6 +27,9 @@ import org.crsh.shell.ui.UIBuilder
 import org.crsh.jcr.JCRPlugin
 import org.crsh.cmdline.spi.Value
 
+import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.services.jcr.RepositoryService;
+
 @Usage("repository interaction commands")
 @Man("""\
 The repo commands allow to select a repository to use, it is the main entry point for using JCR commands.
@@ -74,8 +77,41 @@ The parameters is specific to JCR plugin implementations, more details can be fo
       @Argument
       @Usage("the parameters")
       @Man("The parameters used to instantiate the repository to be used in this session") Value.Properties parameters) {
-    repository = JCRPlugin.findRepository(parameters.getProperties());
+
+    java.util.Properties props = new java.util.Properties();
+    try {
+      if(parameters != null && parameters.getProperties() != null) {
+        props = parameters.getProperties();
+      }
+    } catch (Exception e) {}
+    def ctn = props.get("container", "");
+    if(ctn.length() == 0) {
+      ctn = "portal";
+      props.put("container", ctn);
+    }
+    def repositoryName = props.get("repository", "");
+    if(repositoryName.length() == 0) {
+      repositoryName = "repository";
+      props.put("repository", repositoryName);
+    }
+    System.getProperties().putAll(props);
+   
+    try {
+      repository = JCRPlugin.findRepository(props);
+    } catch (Exception e) {}
+    if(repository == null) {
+      def repoSevice = ExoContainerContext.getContainerByName(ctn).getComponentInstanceOfType(RepositoryService.class);
+      repository = repoSevice.getRepository(repositoryName);
+    }
     return info();
+  }
+  
+  @Command
+  public Object test(
+      @Argument
+      @Usage("the parameters")
+      @Man("The parameters used to instantiate the repository to be used in this session") Value.Properties parameters) {
+    return parameters.getProperties();
   }
 
   @Usage("list the available repository plugins")
@@ -103,6 +139,8 @@ The parameters is specific to JCR plugin implementations, more details can be fo
         builder.node("$key : $val");
       }
     }
+    java.util.Properties props = System.getProperties();
+     builder.node("Login Done: {container : " + props.get("container") + ", repository: " + props.get("repository") +"}");
     return builder;
   }
 }

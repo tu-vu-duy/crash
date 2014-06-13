@@ -60,10 +60,10 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
     //
     if (topContainer != null) {
       String containerName = properties.get("container");
+      String repositoryName = properties.get("repository");
       Object container;
       if (containerName != null) {
-        Method getPortalContainerMethod = topContainer.getClass().getMethod("getPortalContainer",
-            String.class);
+        Method getPortalContainerMethod = topContainer.getClass().getMethod("getPortalContainer", String.class);
         container = getPortalContainerMethod.invoke(topContainer, containerName);
       } else {
         container = topContainer;
@@ -80,9 +80,20 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
 
         //
         if (repositoryService != null) {
-          Method getCurrentRepositoryMethod = repositoryService.getClass().getMethod(
-              "getCurrentRepository");
-          return (Repository) getCurrentRepositoryMethod.invoke(repositoryService);
+          Repository repository = null;
+          if (repositoryName != null) {
+            try {
+              Method getRepositoryMethod = repositoryService.getClass().getMethod("getRepository");
+              repository = (Repository) getRepositoryMethod.invoke(repositoryService, repositoryName);
+            } catch (Exception e) {
+              System.out.println("\n Can not get repository by name: " + repositoryName + "\n" + e.getMessage());
+            }
+          }
+          if (repository == null) {
+            Method getCurrentRepositoryMethod = repositoryService.getClass().getMethod("getCurrentRepository");
+            repository = (Repository) getCurrentRepositoryMethod.invoke(repositoryService);
+          }
+          return repository;
         }
       }
     }

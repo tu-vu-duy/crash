@@ -35,7 +35,7 @@ Connected to workspace portal-system
 
 """)
   @Command
-  public Object login(
+  public Object login1(
     @UserNameOpt String userName,
     @PasswordOpt String password,
     @ContainerOpt String containerName,
@@ -71,7 +71,57 @@ Connected to workspace portal-system
     setCurrentNode(root);
     return """Connected to workspace $workspaceName""";
   }
+  
+  
+@Command
+  public Object login(
+    @UserNameOpt String userName,
+    @PasswordOpt String password,
+    @ContainerOpt String containerName,
+    @Argument
+    @Usage("the workspace name")
+    @Man("The name of the workspace to connect to")
+    String workspaceName) {
 
+
+    //
+    if (userName == null) {
+      userName = "root";
+    }
+
+    //
+    if (userName != null && password == null) {
+      password = "gtn";
+    }
+
+    //
+    if (containerName != null) {
+      throw new ScriptException("The container name option is legacy, use 'repo use container=" + containerName + "' instead")
+    }
+
+    //
+    if (repository == null) {
+      throw new ScriptException("No repository selected, use the repo command first");
+    }
+    
+    //
+    if (workspaceName == null) {
+      workspaceName = "portal-system"
+    }
+
+    //
+    if (userName != null && password != null) {
+      def credentials = new SimpleCredentials(userName, password.toCharArray());
+      session = repository.login(credentials, workspaceName);
+    } else {
+      session = repository.login(workspaceName);
+    }
+    def root = session.getRootNode();
+    setCurrentNode(root);
+    return """Connected to workspace $workspaceName""";
+  }
+  
+  
   @Usage("logout from a workspace")
   @Man("""This command logout from the currently connected JCR workspace""")
   @Command

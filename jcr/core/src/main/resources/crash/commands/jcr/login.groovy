@@ -143,13 +143,20 @@ formatNode = { builder, n, nodeDepth, propertiesDepth ->
         label(property.name + ": " + formatPropertyValue(property));
         }
       }
-      if (nodeDepth > 0) {
-        node('children') {
-          n.nodes.each() { child ->
-            formatNode(builder, child, nodeDepth -1, propertiesDepth -1);
-          }
+    }
+    
+    if (nodeDepth > 0) {
+      node('children') {
+        n.nodes.each() { child ->
+          formatNode(builder, child, nodeDepth -1, propertiesDepth -1);
         }
       }
+    } else if (nodeDepth < 0) {
+      node('children names') {
+        n.nodes.each() { child ->
+          node(child.getName());
+        }
+      }      
     }
   }
 }

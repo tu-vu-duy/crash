@@ -29,18 +29,23 @@ accepts a path argument that can be absolute or relative.
   @Command
   public Object main(
   @Usage("the path to list") @Man("The path of the node content to list") @Argument Path path,
-  @Usage("the tree depth") @Man("The depth of the printed tree") @Option(names=["d","depth"]) Integer depth) {
+  @Usage("the tree depth") @Man("The depth of the printed tree") @Option(names=["d","depth"]) Integer depth,
+  @Usage("the tree pDepth") @Man("The pDepth of the printed tree") @Option(names=["p","pDepth"]) Integer pDepth) {
     assertConnected();
 
     //
     def node = path == null ? getCurrentNode() : findNodeByPath(path);
-    if (depth == null || depth < 1) {
+    if (pDepth == null || pDepth < 0) {
+      pDepth = 1;
+    }
+    
+    if (depth == null) {
       depth = 1;
     }
 
     //
     def builder = new UIBuilder();
-    formatNode(builder, node, depth, depth);
+    formatNode(builder, node, depth, pDepth);
     return builder;
   }
 }
