@@ -23,6 +23,8 @@ import junit.framework.TestCase;
 
 import java.io.IOException;
 
+import org.crsh.cmdline.rest.RestRead;
+
 /**
  * @author <a href="mailto:julien.viet@exoplatform.com">Julien Viet</a>
  * @version $Revision$
@@ -42,5 +44,12 @@ public class UtilTestCase extends TestCase {
   private void assertIndent(String expected, String s) throws IOException {
     StringBuilder sb = Util.indent("_", s, new StringBuilder());
     assertEquals(expected, sb.toString());
+  }
+  
+  public void testRest() {
+    String url = "http://localhost:8080/rest/private/bench/inject/forumProfile?number=1&prefix=user";
+    RestRead read = new RestRead(url, "root:gatein");
+    System.out.println("the data: " + read.getData());
+    
   }
 }

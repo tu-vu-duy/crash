@@ -12,5 +12,13 @@
 
   <name>CRaSH cmdline</name>
   <description>The CRaSH cmdline module</description>
+  <dependencies>
 
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.4</version>
+    </dependency>
+    
+  </dependencies>
 </project>
