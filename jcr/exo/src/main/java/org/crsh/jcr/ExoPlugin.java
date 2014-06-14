@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 eXo Platform SAS.
+ * Copyright (C) 2010 eXo Platform SAS.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -22,6 +22,10 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import javax.jcr.Repository;
 
+/**
+ * @author <a href="mailto:julien.viet@exoplatform.com">Julien Viet</a>
+ * @version $Revision$
+ */
 public class ExoPlugin extends JCRPlugin<ExoPlugin> {
 
   @Override
@@ -55,11 +59,20 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
 
     //
     if (topContainer != null) {
-      String containerName = properties != null ? properties.get("container") : null;
+			String containerName = null;
+			String repositoryName = null;
+			if(properties == null) {
+				java.util.Properties props = System.getProperties()
+				containerName = props.get("container");
+				repositoryName = props.get("repository");
+			} else {
+				containerName = properties.get("container");
+				repositoryName = properties.get("repository");
+			}
+       
       Object container;
       if (containerName != null) {
-        Method getPortalContainerMethod = topContainer.getClass().getMethod("getPortalContainer",
-            String.class);
+        Method getPortalContainerMethod = topContainer.getClass().getMethod("getPortalContainer", String.class);
         container = getPortalContainerMethod.invoke(topContainer, containerName);
       } else {
         container = topContainer;
@@ -76,9 +89,20 @@ public class ExoPlugin extends JCRPlugin<ExoPlugin> {
 
         //
         if (repositoryService != null) {
-          Method getCurrentRepositoryMethod = repositoryService.getClass().getMethod(
-              "getCurrentRepository");
-          return (Repository) getCurrentRepositoryMethod.invoke(repositoryService);
+          Repository repository = null;
+          if (repositoryName != null) {
+            try {
+              Method getRepositoryMethod = repositoryService.getClass().getMethod("getRepository");
+              repository = (Repository) getRepositoryMethod.invoke(repositoryService, repositoryName);
+            } catch (Exception e) {
+              System.out.println("\n Can not get repository by name: " + repositoryName + "\n" + e.getMessage());
+            }
+          }
+          if (repository == null) {
+            Method getCurrentRepositoryMethod = repositoryService.getClass().getMethod("getCurrentRepository");
+            repository = (Repository) getCurrentRepositoryMethod.invoke(repositoryService);
+          }
+          return repository;
         }
       }
     }

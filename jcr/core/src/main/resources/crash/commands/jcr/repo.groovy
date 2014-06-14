@@ -26,6 +26,9 @@ import org.crsh.cli.Usage
 import org.crsh.text.ui.UIBuilder
 import org.crsh.jcr.JCRPlugin
 
+import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.services.jcr.RepositoryService;
+
 @Usage("repository interaction commands")
 @Man("""\
 The repo commands allow to select a repository to use, it is the main entry point for using JCR commands.
@@ -73,10 +76,33 @@ The parameters is specific to JCR plugin implementations, more details can be fo
       @Argument
       @Usage("the parameters")
       @Man("The parameters used to instantiate the repository to be used in this session") Properties parameters) {
-    repository = JCRPlugin.findRepository(parameters);
+
+    java.util.Properties props = new java.util.Properties();
+    if(parameters != null) {
+			props = parameters;
+		}
+    def ctn = props.get("container", "");
+    if(ctn.length() == 0) {
+      ctn = "portal";
+      props.put("container", ctn);
+    }
+    def repositoryName = props.get("repository", "");
+    if(repositoryName.length() == 0) {
+      repositoryName = "repository";
+      props.put("repository", repositoryName);
+    }
+    System.getProperties().putAll(props);
+   
+    try {
+      repository = JCRPlugin.findRepository(props);
+    } catch (Exception e) {}
+    if(repository == null) {
+      def repoSevice = ExoContainerContext.getContainerByName(ctn).getComponentInstanceOfType(RepositoryService.class);
+      repository = repoSevice.getRepository(repositoryName);
+    }
     return info();
   }
-
+  
   @Usage("list the available repository plugins")
   @Man("The ls command print the available repository plugins.")
   @Command
@@ -102,6 +128,9 @@ The parameters is specific to JCR plugin implementations, more details can be fo
         builder.node("$key : $val");
       }
     }
+    java.util.Properties props = System.getProperties();
+     builder.node("Login Done: {container : " + props.get("container") + ", repository: " + props.get("repository") +"}");
     return builder;
   }
 }
+
