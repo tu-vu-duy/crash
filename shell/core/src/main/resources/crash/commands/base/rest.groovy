@@ -1,5 +1,3 @@
-import org.crsh.shell.ui.UIBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Enumeration;
@@ -9,13 +7,15 @@ import org.crsh.jcr.command.UserNameOpt;
 import org.crsh.jcr.command.PasswordOpt
 
 import org.crsh.command.InvocationContext
-import org.crsh.cmdline.annotations.Man
-import org.crsh.cmdline.annotations.Command
-import org.crsh.cmdline.annotations.Usage
-import org.crsh.cmdline.annotations.Argument
-import org.crsh.cmdline.annotations.Option;
 
+import org.crsh.cli.Man
+import org.crsh.cli.Command
+import org.crsh.cli.Usage
+import org.crsh.cli.Argument
+import org.crsh.cli.Option;
 import org.crsh.cli.rest.RestRead;
+
+import org.crsh.text.ui.UIBuilder;
 
 public class rest extends org.crsh.command.CRaSHCommand {
 
@@ -173,7 +173,9 @@ public class rest extends org.crsh.command.CRaSHCommand {
     @Argument(unquote = true)
     @Usage("Input the query parameters [ex: limit=10;offset=0;method=get]")
     @Man("The parameters of rest") java.util.Properties parameters) {
-    
+		//
+		isValid();
+
     if(action == null || action.trim().length() == 0) {
       throw new ScriptException("The method input not found. Please, use method: fetch, like, rm, add, update, comments");
     }
@@ -204,14 +206,16 @@ public class rest extends org.crsh.command.CRaSHCommand {
 			}
 		}
     key += "activity";
-    
     def data = System.getProperties().get(key);
-    java.util.Properties vaules = RestRead.convertQueryParams(params)
+    java.util.Properties vaules = RestRead.convertQueryParams(data)
     
     def path = vaules.get("path").replace("{activityId}", activityId);
+    if(notNull(commentId)) {
+			path = path.replace("{commentId}", commentId);
+		}
     params += ";" + vaules.get("method");
     
-    return get(path, RestRead.convertQueryParams(params));
+    return get_(path, RestRead.convertQueryParams(params));
   }
 
 //===============================================================================================//  
@@ -385,18 +389,16 @@ public class rest extends org.crsh.command.CRaSHCommand {
   }
   
   private Object get_(String path, java.util.Properties props) {
-    def builder = new UIBuilder();
-    if(domain == null) {
-      throw new ScriptException("Need use command: 'rest use' before use this command");
-    }
-    if(userInfo == null) {
-      throw new ScriptException("Need use command: 'rest login' to login user before use this command");
-    }
-    if(path == null) {
+		//
+		isValid();
+
+		if(path == null) {
       throw new ScriptException("Need input the path url to get data of rest.");
     }
-    path = domain + "/" + restName + ((restVersion.length() > 0) ? ("/" + restVersion) : "") + "/" + path;
+    def builder = new UIBuilder();
+    path = domain + "/" + restName + ((restVersion.length() > 0 && useVersion.equalsIgnoreCase("true")) ? ("/" + restVersion) : "") + "/" + path;
     builder.node("Info: {restURL : " + path + ", user: " + userInfo +"}");
+    useVersion = "false";
     
     Enumeration<Object> e = props.keys();
     def params = "", method = "GET";
@@ -428,6 +430,15 @@ public class rest extends org.crsh.command.CRaSHCommand {
 			return false;
 		}
 		return true;
+	}
+	
+	private void isValid() {
+		if(domain == null) {
+      throw new ScriptException("Need use command: 'rest use' before use this command");
+    }
+    if(userInfo == null) {
+      throw new ScriptException("Need use command: 'rest login' to login user before use this command");
+    }
 	}
 
 
